@@ -2,14 +2,13 @@ const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const { validateMobgodbID } = require("../utils/validateMongodbID");
 const Filter = require("bad-words");
-// const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
 
 // Configuration
 cloudinary.config({
-  cloud_name: "dlvz7xiqt",
-  api_key: "811439918543851",
-  api_secret: "eKhvPKBK_OBza-Vbd6qeHFd5UKc",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_KEY,
 });
 
 // const { cloudinaryUploadImg } = require("../utils/cloudinary");

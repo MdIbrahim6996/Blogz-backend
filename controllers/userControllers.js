@@ -250,8 +250,7 @@ exports.generateVerificationToken = async (req, res, next) => {
 };
 
 exports.accountVerification = async (req, res, next) => {
-  const token =
-    "752cd80f3176937cc9558b867c3d5309d3597f809b3f8b060bd19b16f9356e88";
+  const token= "token"
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
   const userFound = await User.findOne({
