@@ -2,16 +2,7 @@ const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const { validateMobgodbID } = require("../utils/validateMongodbID");
 const Filter = require("bad-words");
-const cloudinary = require("cloudinary").v2;
-
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_KEY,
-});
-
-// const { cloudinaryUploadImg } = require("../utils/cloudinary");
+const { cloudinaryUploadImg } = require("../utils/cloudinary");
 
 exports.createPost = async (req, res, next) => {
   const { id } = req.user;
@@ -31,17 +22,17 @@ exports.createPost = async (req, res, next) => {
         "Post Creation failed as it contains abusive words and you have been blocked"
       );
     }
-
-    const imageResponse = await cloudinary.uploader.upload(req.body.image, {
-      public_id: title.trim(),
-    });
+    let imageResponse = null;
+    if (req.body.image) {
+      imageResponse = await cloudinaryUploadImg(req.body.image, req.body.title);
+      console.log(imageResponse);
+    }
 
     const post = await Post.create({
       ...req.body,
-      image: imageResponse?.secure_url,
+      image: imageResponse?.url,
       user: id,
     });
-    console.log(post);
 
     res.json(post);
   } catch (error) {
@@ -54,9 +45,8 @@ exports.fetchPosts = async (req, res, next) => {
   const { page, category } = req.query;
   const limit = 6;
   try {
-    const Allposts = await Post.find({});
-    const totalResults = Allposts?.length;
-    const totalPages = Math.ceil(Allposts?.length / limit);
+    const totalResults = await Post.countDocuments({});
+    const totalPages = Math.ceil(totalResults / limit);
 
     if (category === "All") {
       const posts = await Post.find({})
@@ -108,11 +98,13 @@ exports.updatePost = async (req, res) => {
 
   try {
     validateMobgodbID(id);
+    for (key in req.body) {
+      if (!req.body[key]) delete req.body[key];
+    }
     const post = await Post.findByIdAndUpdate(
       id,
       {
         ...req.body,
-        user: req.user?._id,
       },
       {
         new: true,
@@ -132,7 +124,12 @@ exports.deletePost = async (req, res) => {
   const { id } = req.params;
   validateMobgodbID(id);
   try {
-    const post = await Post.findByIdAndDelete(id);
+    const post = await Post.findById(id).populate("user");
+    console.log(req.isAdmin);
+    if (post?.user?.id.toString() === id || req.isAdmin) {
+      const deletedPost = await Post.findByIdAndDelete(id);
+      return res.json(deletedPost);
+    }
     res.json(post);
   } catch (error) {
     res.json(error);

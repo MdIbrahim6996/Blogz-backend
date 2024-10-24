@@ -6,7 +6,6 @@ const crypto = require("crypto");
 
 const SibApiV3Sdk = require("sib-api-v3-sdk");
 
-
 let defaultClient = SibApiV3Sdk.ApiClient.instance;
 let apiKey = defaultClient.authentications["api-key"];
 apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
@@ -41,15 +40,6 @@ exports.login = async (req, res, next) => {
     }
 
     if (user && (await user.isPasswordMatched(password))) {
-      //    return res.json({
-      //         _id: user?._id,
-      //         firstName: user?.firstName,
-      //         lastName: user?.lastName,
-      //         email: user?.email,
-      //         profilePhoto: user?.profilePhoto,
-      //         isAdmin: user?.isAdmin,
-      //         token:generateToken(user?._id)
-      //     })
       const responseUser = user?._doc;
       return res.json({ ...responseUser, token: generateToken(user?._id) });
     }
@@ -79,7 +69,7 @@ exports.generateResetPasswordToken = async (req, res, next) => {
     const resetToken = await user.createPasswordResetToken();
     await user.save();
 
-    const link = `http://localhost:5173/auth/reset-password/${resetToken}`;
+    const link = `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`;
 
     sendSmtpEmail.subject = "{{params.subject}}";
     sendSmtpEmail.htmlContent = resetPasswordHtml;
@@ -98,7 +88,7 @@ exports.generateResetPasswordToken = async (req, res, next) => {
     res.send(resetToken);
   } catch (error) {
     console.log(error);
-    next(error)
+    next(error);
   }
 };
 
@@ -114,10 +104,9 @@ exports.resetPassword = async (req, res, next) => {
     if (!userFound) throw new Error("Token Expired");
     if (!password) throw new Error("Password is required");
 
-
     userFound.passwordResetToken = undefined;
     userFound.passwordResetExpires = undefined;
-      userFound.password = password;
+    userFound.password = password;
     await userFound.save();
     res.json(userFound);
   } catch (error) {
@@ -138,7 +127,7 @@ exports.generateVerificationToken = async (req, res, next) => {
     await user.save();
 
     console.log(verificationToken);
-    const link = `http://localhost:5173/auth/verify-account/${verificationToken}`;
+    const link = `${process.env.CLIENT_URL}/auth/verify-account/${verificationToken}`;
 
     sendSmtpEmail.subject = "{{params.subject}}";
     sendSmtpEmail.htmlContent = verifyAccountHtml;

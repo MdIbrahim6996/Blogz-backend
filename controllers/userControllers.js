@@ -10,10 +10,10 @@ const { validateMobgodbID } = require("../utils/validateMongodbID");
 const cloudinary = require("cloudinary").v2;
 
 // Configuration
-cloudinary.config({
-  cloud_name: "dlvz7xiqt",
-  api_key: "811439918543851",
-  api_secret: "eKhvPKBK_OBza-Vbd6qeHFd5UKc",
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 exports.fetchUsers = async (req, res, next) => {
@@ -48,7 +48,6 @@ exports.userDetails = async (req, res, next) => {
     const { id } = req.params;
     validateMobgodbID(id);
     const user = await User.findById(id);
-    console.log(user);
     res.json(user);
   } catch (error) {
     console.log(error);
@@ -72,7 +71,6 @@ exports.userProfile = async (req, res, next) => {
 exports.updateUserProfile = async (req, res, next) => {
   const { id } = req?.user;
   validateMobgodbID(id);
-  console.log(req.body);
   const { firstName, lastName, email } = req.body;
 
   const user = await User.findById(id);
@@ -99,7 +97,6 @@ exports.updateUserProfile = async (req, res, next) => {
 exports.updateUserPassword = async (req, res, next) => {
   const { id } = req?.user;
   const { password } = req?.body;
-  console.log(password);
 
   validateMobgodbID(id);
 
@@ -129,7 +126,6 @@ exports.followingUser = async (req, res, next) => {
     validateMobgodbID(followId);
 
     const targetUser = await User.findById(followId);
-    console.log(targetUser);
 
     const alreadyFollowing = targetUser?.followers?.find(
       (userId) => userId.toString() === loginUserId
@@ -266,14 +262,6 @@ exports.accountVerification = async (req, res, next) => {
   }
 };
 
-exports.blockUsersdsadsa = async (req, res, next) => {
-  try {
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-};
-
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //!          FORGET PASSWORD TOKEN GENERATOR
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -342,7 +330,6 @@ exports.coverPhotoUploadCtrl = async (req, res, next) => {
       width: 200,
       height: 200,
     });
-    console.log(imageResponse);
     const user = await User.findByIdAndUpdate(
       id,
       {
@@ -368,7 +355,6 @@ exports.profilePhotoUploadCtrl = async (req, res, next) => {
       width: 200,
       height: 200,
     });
-    console.log(imageResponse);
     const user = await User.findByIdAndUpdate(
       id,
       {
